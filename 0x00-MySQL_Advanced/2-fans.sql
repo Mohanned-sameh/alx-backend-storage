@@ -3,5 +3,5 @@
 -- Column must be origin and nb_fans
 -- Script can be executed on any database
 
-SELECT origin, COUNT(*) AS nb_fans FROM metal_bands
+SELECT origin, SUM(fans) as nb_fans FROM metal_bands
 GROUP BY origin ORDER BY nb_fans DESC;
