@@ -2,35 +2,32 @@
 """
 Caching request module
 """
+from typing import Callable
 import redis
 import requests
-from functools import wraps
-from typing import Callable
 
 
-def track_get_page(fn: Callable) -> Callable:
-    """Decorator for get_page"""
-
-    @wraps(fn)
-    def wrapper(url: str) -> str:
-        """Wrapper that:
-        - check whether a url's data is cached
-        - tracks how many times get_page is called
-        """
-        client = redis.Redis()
-        client.incr(f"count:{url}")
-        cached_page = client.get(f"{url}")
-        if cached_page:
-            return cached_page.decode("utf-8")
-        response = fn(url)
-        client.set(f"{url}", response, 10)
-        return response
-
-    return wrapper
+def cache_url(redis: redis.client.Redis, url: str) -> str:
+    """
+    Cache the result of the request
+    """
+    key = f"result:{url}"
+    redis.set(key, get_page(url))
+    redis.expire(key, 10)
+    return redis.get(key).decode("utf-8")
 
 
-@track_get_page
 def get_page(url: str) -> str:
-    """Makes a http request to a given endpoint"""
+    """
+    Get the content of the page
+    """
     response = requests.get(url)
     return response.text
+
+
+if __name__ == "__main__":
+    r = redis.Redis()
+    get_page = cache_url(
+        r, "http://slowwly.robertomurray.co.uk/delay/5000/url/http://www.google.co.uk"
+    )
+    print(get_page)
