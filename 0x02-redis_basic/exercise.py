@@ -12,7 +12,8 @@ def count_calls(method: Callable) -> Callable:
 
     @wraps(method)
     def wrapper(self: Any, *args, **kwargs) -> str:
-        """Wraps called method and adds its call count redis before execution"""
+        """Wraps called method and
+        adds its call count redis before execution"""
         self._redis.incr(method.__qualname__)
         return method(self, *args, **kwargs)
 
