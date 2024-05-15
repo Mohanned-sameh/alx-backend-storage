@@ -1,31 +1,24 @@
 #!/usr/bin/env python3
-""" 12. Log stats
-"""
-
-
+""" provides some stats about Nginx logs stored in MongoDB """
 from pymongo import MongoClient
 
 
-def log_stats():
-    """log_stats."""
+def main():
+    """provides some stats about Nginx logs stored in MongoDB"""
     client = MongoClient("mongodb://127.0.0.1:27017")
-    logs_collection = client.logs.nginx
-    total = logs_collection.count_documents({})
-    get = logs_collection.count_documents({"method": "GET"})
-    post = logs_collection.count_documents({"method": "POST"})
-    put = logs_collection.count_documents({"method": "PUT"})
-    patch = logs_collection.count_documents({"method": "PATCH"})
-    delete = logs_collection.count_documents({"method": "DELETE"})
-    path = logs_collection.count_documents({"method": "GET", "path": "/status"})
-    print(f"{total} logs")
+    nginx_c = client.logs.nginx
+
+    n_logs = nginx_c.count_documents({})
+    print(f"{n_logs} logs")
+    methods: list[str] = ["GET", "POST", "PUT", "PATCH", "DELETE"]
     print("Methods:")
-    print(f"\tmethod GET: {get}")
-    print(f"\tmethod POST: {post}")
-    print(f"\tmethod PUT: {put}")
-    print(f"\tmethod PATCH: {patch}")
-    print(f"\tmethod DELETE: {delete}")
-    print(f"{path} status check")
+    for m in methods:
+        c: int = nginx_c.count_documents({"method": m})
+        print(f"\tmethod {m}: {c}")
+
+    st_c: int = nginx_c.count_documents({"method": "GET", "path": "/status"})
+    print(f"{st_c} status check")
 
 
 if __name__ == "__main__":
-    log_stats()
+    main()
